@@ -1,4 +1,5 @@
 import cligen
+
 import std/[osproc, strformat, terminal, strutils]
 
 const BLUE = ansiForegroundColorCode(fgBlue)
@@ -22,7 +23,7 @@ proc error(TEXT: string, QUIT: bool = false) =
 proc execute(COMMAND: string) =
   let status = execCmd(fmt"{COMMAND} > /dev/null 2>&1")
 
-  if status == 0:
+  if status != 0:
     error(fmt"""Command '{COMMAND}' failed to exit""", true)
 
 proc config(TEXT: string) =
@@ -41,7 +42,7 @@ proc commit(msg: string, upstream: bool = false) =
 
   print "Pushing..."
   execute "git add ."
-  execute fmt"""git commit -m {msg}"""
+  execute fmt"""git commit -m "{msg}" """
 
   if upstream:
     execute fmt"git push -u {remoteName} {branchName}"
@@ -49,8 +50,8 @@ proc commit(msg: string, upstream: bool = false) =
     execute fmt"git push {remoteName} {branchName}"
 
 proc pull(sync: bool = false) =
-  ## Pull the latest data from remote to sync
-  ## Uee 'sync: true' for using GitHub CLI 
+  ## Pull the latest data from remote to sync.
+  ## Use 'sync: true' for using GitHub CLI.
   print "Pulling remote data..."
   execute fmt"git pull {remoteName} {branchName}"
 
@@ -58,4 +59,37 @@ proc pull(sync: bool = false) =
     print "Using GitHub CLI to sync with repository..."
     execute "gh repo sync"
 
-dispatchMulti([commit, help={"upstream": "set upstream branch to current"}], [pull, help={"sync": "try to use GitHub CLI for forks / repos"}])
+proc destroy(name: string) =
+  ## Delete a repository with the given name.
+  ## Does not need confirmation!
+  print fmt"Deleting repository {name}..."
+  execute fmt"gh repo delete {name} --yes"
+
+proc make(name: string) =
+  ## Create a repository with the given name.
+  ## The new repository defaults to being:
+  ##     public,
+  ##     remote origin and
+  ##     auto pushed
+  print fmt"Creating repository {name}..."
+  execute fmt"gh repo create {name} --public --source=. --remote=origin --push" 
+
+dispatchMulti([commit,
+ help={
+ "upstream": "set upstream branch to current",
+ "msg": "set the commit message"}],
+ 
+ [pull,
+ help={
+  "sync": "try to use GitHub CLI for forks / repos"
+ }],
+
+ [make,
+ help={
+  "name": "the name of the repository to create"
+}],
+
+ [destroy,
+ help={
+  "name": "the name of the repository to delete"
+}])
