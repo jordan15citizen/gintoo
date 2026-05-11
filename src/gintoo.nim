@@ -1,5 +1,4 @@
 import cligen
-
 import std/[osproc, strformat, terminal, strutils]
 
 const BLUE = ansiForegroundColorCode(fgBlue)
