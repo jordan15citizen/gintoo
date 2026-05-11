@@ -8,6 +8,9 @@ const YELLOW = ansiForegroundColorCode(fgYellow)
 const BOLD = ansiStyleCode(styleBright)
 const RESET = ansiResetCode
 
+## A tool for git in the CLI.
+## Supports GitHub CLI.
+
 proc print(TEXT: string) =
   echo fmt"{BLUE}[*] {TEXT}"
 
@@ -40,6 +43,10 @@ proc commit(msg: string, upstream: bool = false) =
     Branch: {BOLD}{branchName}{RESET}
     Remote: {BOLD}{remoteName}{RESET}"""
 
+  echo ""
+  if remoteName == "":
+    error("Remote is empty ( perhaps you didn't add a repository? )")
+  
   print "Pushing..."
   execute "git add ."
   execute fmt"""git commit -m "{msg}" """
