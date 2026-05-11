@@ -8,11 +8,21 @@ const YELLOW = ansiForegroundColorCode(fgYellow)
 const BOLD = ansiStyleCode(styleBright)
 const RESET = ansiResetCode
 
+
+const VERSION = staticExec("grep version ../gintoo.nimble | cut -d'\"' -f2").strip()
+
 ## A tool for git in the CLI.
 ## Supports GitHub CLI.
 
 proc print(TEXT: string) =
   echo fmt"{BLUE}[*] {TEXT}"
+
+proc version() =
+  ## Print version and exit.
+  ## Nim version that built the
+  ## binary is included.
+  echo fmt"gintoo v{VERSION}"
+  echo fmt"nim v{NimVersion}"
 
 proc warn(TEXT: string) =
   stderr.write fmt"{BLUE}[{YELLOW}-{BLUE}] {TEXT}"
@@ -44,7 +54,7 @@ proc commit(msg: string, upstream: bool = false) =
     Remote: {BOLD}{remoteName}{RESET}"""
 
   echo ""
-  if remoteName == "":
+  if remoteName.isEmptyOrWhitespace():
     error("Remote is empty ( perhaps you didn't add a repository? )")
   
   print "Pushing..."
@@ -95,6 +105,8 @@ dispatchMulti([commit,
  help={
   "name": "the name of the repository to create"
 }],
+
+[version],
 
  [destroy,
  help={
